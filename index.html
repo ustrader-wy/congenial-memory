@@ -1,11 +1,93 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>YQT BOT PRO</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="./cdns/fm.selectator.jquery.css" />
-  <link rel="shortcut icon" href="./fav.png" type="image/x-icon" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: sans-serif;
+    }
+
+    body {
+      background: #0f2026;
+      color: white;
+      min-height: 100vh;
+    }
+
+    #doc__wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 2rem;
+    }
+
+    #title {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      font-weight: 100;
+    }
+
+    #content__wrapper {
+      background: #0f2026;
+      padding: 2rem;
+      border: 1px solid #fff;
+      border-radius: 8px;
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    #banner img {
+      border-radius: 50%;
+      border: 4px solid white;
+      margin-bottom: 1rem;
+      width: 100px;
+    }
+
+    select {
+      padding: 0.5rem;
+      margin: 0.5rem;
+      width: 80%;
+    }
+
+    #signal {
+      background: #9e0b1d;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 1rem;
+    }
+
+    #signal:disabled {
+      background: gray;
+    }
+
+    #result {
+      margin-top: 1rem;
+      font-size: 1.5rem;
+      border: none;
+      background: none;
+      color: white;
+    }
+
+    #loader {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .rem__time {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+  </style>
 </head>
 <body>
   <div id="doc__wrapper">
@@ -13,40 +95,92 @@
     <div id="content__wrapper">
       <div id="banner">
         <img src="./yqt.jpg" alt="YQT" />
-      </div><div class="platform__wrapper">
-    <select id="platform__box" class="platform__select">
-      <option value="q">QUOTEX</option>
-      <option value="p">POCKET OPTION</option>
-      <option value="b">BINOMO</option>
-      <option value="o">OLYMP</option>
-      <option value="i">IQ OPTION</option>
-      <option value="e">EXPERT OPTION</option>
-    </select>
+      </div>
+
+      <div class="platform__wrapper">
+        <select id="platform__box">
+          <option value="q">QUOTEX</option>
+          <option value="p">POCKET OPTION</option>
+          <option value="b">BINOMO</option>
+          <option value="o">OLYMP</option>
+          <option value="i">IQ OPTION</option>
+          <option value="e">EXPERT OPTION</option>
+        </select>
+      </div>
+
+      <div class="pair__wrapper">
+        <select id="pair__box"></select><br><br>
+        <select id="time__box">
+          <option value="5s">5s</option>
+          <option value="10s">10s</option>
+          <option value="15s">15s</option>
+          <option value="30s">30s</option>
+          <option selected value="1m">1m</option>
+          <option value="2m">2m</option>
+          <option value="5m">5m</option>
+        </select>
+      </div>
+
+      <div id="trade__wrapper">
+        <button id="signal">GET SIGNAL</button>
+        <div class="rem__time"></div>
+      </div>
+
+      <div id="center">
+        <div id="loader"></div>
+        <button id="result"></button>
+      </div>
+    </div>
   </div>
 
-  <div class="pair__wrapper">
-    <select id="pair__box" class="pair__select"></select><br><br>
-    <select id="time__box" class="time__select">
-      <option value="5s">5s</option>
-      <option value="10s">10s</option>
-      <option value="15s">15s</option>
-      <option value="30s">30s</option>
-      <option selected value="1m">1m</option>
-      <option value="2m">2m</option>
-      <option value="5m">5m</option>
-    </select>
-  </div>
+  <script>
+    const pairList = [
+      'usdbrl (otc)', 'cadchf (otc)', 'usdars (otc)', 'usdinr (otc)',
+      'usdpkr (otc)', 'usdbdt (otc)', 'usddzd (otc)', 'usdcop (otc)',
+      'usdjpy (otc)', 'audjpy (otc)', 'eurusd (otc)', 'usdphp (jpy)'
+    ];
 
-  <div id="trade__wrapper">
-    <button id="signal">GET SIGNAL</button>
-    <div class="rem__time"></div>
-  </div>
+    const signalList = ['SELL', 'BUY', 'BUY', 'SELL', 'SELL', 'SELL', 'BUY'];
 
-  <div id="center">
-    <div id="loader"></div>
-    <button id="result"></button>
-  </div>
-</div>
+    const pair__box = document.querySelector('#pair__box');
+    pairList.forEach(pair => {
+      const opt = document.createElement('option');
+      opt.value = pair;
+      opt.innerText = pair.replace(/(?<=^.{3})/, '/').toUpperCase();
+      pair__box.appendChild(opt);
+    });
 
-  </div>  <script src="./cdns/jquery-3.4.1.min.js"></script>  <script src="./cdns/fm.selectator.jquery.js"></script>  <script src="script.js"></script></body>
+    const signal = document.querySelector('#signal');
+    const result = document.querySelector('#result');
+    const remTime = document.querySelector('.rem__time');
+    const loader = document.querySelector('#loader');
+
+    function startTimer() {
+      let seconds = 39;
+      function tick() {
+        remTime.innerHTML = `GET NEXT IN 0:${seconds < 10 ? '0' : ''}${seconds}`;
+        if (seconds-- > 0) setTimeout(tick, 1000);
+      }
+      tick();
+    }
+
+    signal.onclick = () => {
+      signal.disabled = true;
+      remTime.style.visibility = 'hidden';
+      loader.style.display = 'block';
+      loader.innerHTML = '<div>PLEASE WAIT...</div>';
+
+      setTimeout(() => {
+        const randSignal = signalList[Math.floor(Math.random() * signalList.length)];
+        result.style.color = randSignal === 'BUY' ? 'lime' : 'red';
+        result.innerText = randSignal;
+
+        loader.style.display = 'none';
+        signal.disabled = false;
+        remTime.style.visibility = 'visible';
+        startTimer();
+      }, 2000);
+    };
+  </script>
+</body>
 </html>
