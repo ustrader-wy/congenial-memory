@@ -1,185 +1,144 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>YQT BOT PRO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    * {
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f2026;
+      color: white;
+      text-align: center;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      font-family: sans-serif;
     }
-
-    body {
-      background: #0f2026;
-      color: white;
-      min-height: 100vh;
-    }
-
-    #doc__wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 2rem;
-    }
-
-    #title {
-      font-size: 2.5rem;
-      margin-bottom: 1.5rem;
-      font-weight: 100;
-    }
-
-    #content__wrapper {
-      background: #0f2026;
+    .container {
       padding: 2rem;
-      border: 1px solid #fff;
-      border-radius: 8px;
-      text-align: center;
-      width: 100%;
-      max-width: 400px;
     }
-
-    #banner img {
-      border-radius: 50%;
-      border: 4px solid white;
-      margin-bottom: 1rem;
-      width: 100px;
-    }
-
-    select {
-      padding: 0.5rem;
-      margin: 0.5rem;
-      width: 80%;
-    }
-
-    #signal {
-      background: #9e0b1d;
+    select, button {
+      padding: 10px;
+      margin: 10px;
+      background: #1b1b1b;
       color: white;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      font-size: 1rem;
-      cursor: pointer;
+      border: 1px solid #444;
       border-radius: 5px;
-      margin-top: 1rem;
+      font-size: 1rem;
     }
-
-    #signal:disabled {
-      background: gray;
+    button#signal {
+      background: #9e0b1d;
+      font-size: 1.1rem;
+      cursor: pointer;
     }
-
     #result {
+      font-size: 2rem;
       margin-top: 1rem;
-      font-size: 1.5rem;
-      border: none;
-      background: none;
-      color: white;
+      font-weight: bold;
     }
-
     #loader {
       display: none;
       margin-top: 1rem;
     }
-
     .rem__time {
       margin-top: 0.5rem;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: #ccc;
+    }
+    img.logo {
+      width: 100px;
+      height: auto;
+      border-radius: 50%;
+      margin-bottom: 1rem;
+      border: 2px solid white;
+      box-shadow: 0 0 20px rgba(255,255,255,0.3);
+    }
+    h1 {
+      font-weight: 100;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: #fff;
     }
   </style>
 </head>
 <body>
-  <div id="doc__wrapper">
-    <div id="title">YQT BOT PRO</div>
-    <div id="content__wrapper">
-      <div id="banner">
-        <img src="./yqt.jpg" alt="YQT" />
-      </div>
+  <div class="container">
+    <img src="./yqt.jpg" alt="YQT Logo" class="logo" />
+    <h1>YQT BOT PRO</h1>
 
-      <div class="platform__wrapper">
-        <select id="platform__box">
-          <option value="q">QUOTEX</option>
-          <option value="p">POCKET OPTION</option>
-          <option value="b">BINOMO</option>
-          <option value="o">OLYMP</option>
-          <option value="i">IQ OPTION</option>
-          <option value="e">EXPERT OPTION</option>
-        </select>
-      </div>
+    <select id="platform__box">
+      <option value="QUOTEX">QUOTEX</option>
+      <option value="IQ OPTION">IQ OPTION</option>
+      <option value="POCKET OPTION">POCKET OPTION</option>
+    </select>
 
-      <div class="pair__wrapper">
-        <select id="pair__box"></select><br><br>
-        <select id="time__box">
-          <option value="5s">5s</option>
-          <option value="10s">10s</option>
-          <option value="15s">15s</option>
-          <option value="30s">30s</option>
-          <option selected value="1m">1m</option>
-          <option value="2m">2m</option>
-          <option value="5m">5m</option>
-        </select>
-      </div>
+    <select id="pair__box">
+      <option value="EURUSD">EUR/USD</option>
+      <option value="USDJPY">USD/JPY</option>
+      <option value="AUDJPY">AUD/JPY</option>
+      <option value="USDINR">USD/INR</option>
+      <option value="USDPKR">USD/PKR</option>
+    </select>
 
-      <div id="trade__wrapper">
-        <button id="signal">GET SIGNAL</button>
-        <div class="rem__time"></div>
-      </div>
+    <select id="time__box">
+      <option value="1m">1 Minute</option>
+      <option value="5m">5 Minutes</option>
+      <option value="15m">15 Minutes</option>
+    </select>
 
-      <div id="center">
-        <div id="loader"></div>
-        <button id="result"></button>
-      </div>
-    </div>
+    <br />
+    <button id="signal">GET SIGNAL</button>
+    <div id="loader">⏳ Fetching signal...</div>
+    <div id="result"></div>
+    <div class="rem__time"></div>
   </div>
 
   <script>
-    const pairList = [
-      'usdbrl (otc)', 'cadchf (otc)', 'usdars (otc)', 'usdinr (otc)',
-      'usdpkr (otc)', 'usdbdt (otc)', 'usddzd (otc)', 'usdcop (otc)',
-      'usdjpy (otc)', 'audjpy (otc)', 'eurusd (otc)', 'usdphp (jpy)'
-    ];
+    const backendURL = 'https://your-backend-url.com/rsi'; // Replace with your real backend
 
-    const signalList = ['SELL', 'BUY', 'BUY', 'SELL', 'SELL', 'SELL', 'BUY'];
-
-    const pair__box = document.querySelector('#pair__box');
-    pairList.forEach(pair => {
-      const opt = document.createElement('option');
-      opt.value = pair;
-      opt.innerText = pair.replace(/(?<=^.{3})/, '/').toUpperCase();
-      pair__box.appendChild(opt);
-    });
-
-    const signal = document.querySelector('#signal');
-    const result = document.querySelector('#result');
+    const signalBtn = document.getElementById('signal');
+    const result = document.getElementById('result');
+    const loader = document.getElementById('loader');
     const remTime = document.querySelector('.rem__time');
-    const loader = document.querySelector('#loader');
 
     function startTimer() {
       let seconds = 39;
       function tick() {
-        remTime.innerHTML = `GET NEXT IN 0:${seconds < 10 ? '0' : ''}${seconds}`;
+        remTime.innerText = `GET NEXT IN 0:${seconds < 10 ? '0' : ''}${seconds}`;
         if (seconds-- > 0) setTimeout(tick, 1000);
       }
       tick();
     }
 
-    signal.onclick = () => {
-      signal.disabled = true;
-      remTime.style.visibility = 'hidden';
-      loader.style.display = 'block';
-      loader.innerHTML = '<div>PLEASE WAIT...</div>';
+    signalBtn.onclick = async () => {
+      const symbol = document.getElementById('pair__box').value;
+      const interval = document.getElementById('time__box').value;
 
-      setTimeout(() => {
-        const randSignal = signalList[Math.floor(Math.random() * signalList.length)];
-        result.style.color = randSignal === 'BUY' ? 'lime' : 'red';
-        result.innerText = randSignal;
+      loader.style.display = 'block';
+      result.innerText = '';
+      signalBtn.disabled = true;
+      remTime.style.visibility = 'hidden';
+
+      try {
+        const response = await fetch(`${backendURL}?symbol=${symbol}&interval=${interval}`);
+        const data = await response.json();
 
         loader.style.display = 'none';
-        signal.disabled = false;
+        signalBtn.disabled = false;
         remTime.style.visibility = 'visible';
+
+        let signal = 'NEUTRAL';
+        if (data.rsi < 30) signal = 'BUY';
+        else if (data.rsi > 70) signal = 'SELL';
+
+        result.style.color = signal === 'BUY' ? 'lime' : (signal === 'SELL' ? 'red' : 'gray');
+        result.innerText = signal;
         startTimer();
-      }, 2000);
+      } catch (err) {
+        loader.style.display = 'none';
+        signalBtn.disabled = false;
+        result.innerText = 'Error fetching signal';
+        result.style.color = 'orange';
+      }
     };
   </script>
 </body>
